@@ -4,10 +4,14 @@ const app = express()
 const request = require('request')
 const cheerio = require('cheerio')
 const summarize = require('summarize')
+const DB = require('./DB')
+
 
 class News {
 
   constructor(...args) {
+    this.db = new DB();
+    this.db.init();
     this.state = {
       news: [],
       summaries: []
@@ -16,14 +20,15 @@ class News {
 
   init() {
     this.initNews();
-    this.initSummary();
   }
 
   initNews() {
     const self = this;
     app.get('/hackernews', function (req, res) {
       self.getNews(req.query.page)
-          .then(res.send(JSON.stringify(self.state.news)))
+          .then(() => {
+            res.send(JSON.stringify(self.state.news))
+          });
     })
   }
 
@@ -32,7 +37,8 @@ class News {
     return new Promise((resolve, reject) => {
       request(`https://news.ycombinator.com/news?p=${page}`, (er, re, body) => {
         if (er) {
-          reject('error');
+          reject('error')
+          return
         }
         let $ = cheerio.load(body)
         $('.athing').each((i, e) => {
@@ -41,19 +47,40 @@ class News {
             link: $(e).find('.title a').attr('href'),
             title: $(e).find('.title a').text()
           }
-          self.state.news.push(currentNews)
+          self.db.insertNews([currentNews.id, currentNews.link])
         })
-        resolve('success');
+        resolve('success news');
       })
     })
   }
 
+  getSummaries() {
+    const self = this;
+    return new Promise((resolve, reject) => {
+      self.state.news.forEach((x, i) => {
+        request(x.link, (er, re, body) => {
+          if (er) {
+            console.log('there was an error');
+            reject('error')
+            return
+          }
+          self.state.summaries.push({id: x.id, summary: summarize(body)})
+          console.log(self.state.summaries.length);
+          if (self.state.summaries.length === (self.state.news.length - 1)) {
+            console.log('all good');
+            resolve('success summaries');
+          }
+        })
+      })
+  })
+}
+
+
+
   initSummary() {
     const self = this;
     app.get('/summary/:newsId', function (req, res) {
-      console.log(req.params.newsId);
-      const article = self.state.news.filter(x => x.id == req.params.newsId);
-      console.log(article);
+      const article = self.state.summaries.filter(x => x.id == req.params.newsId);
       res.send(article)
     })
   }
