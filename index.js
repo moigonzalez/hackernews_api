@@ -102,12 +102,12 @@ class News {
 const news = new News();
 news.init();
 
-cron.schedule('*/30 * * * *', function(){
+cron.schedule('*/40 * * * *', function(){
   news.getLatestNews();
 });
 
 cron.schedule('*/15 * * * *', function(){
-  news.convertNewsToSummaries('10');
+  news.convertNewsToSummaries('15');
 });
 
 app.listen(process.env.PORT)
