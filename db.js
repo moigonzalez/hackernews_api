@@ -49,8 +49,6 @@ class DB {
       }
     }
 
-
-
     async insertSummary(params) {
       const existsQuery = `SELECT * FROM summaries WHERE id = $1`;
       const insertQuery = 'INSERT INTO summaries(id, link, sentiment, title, topics, words, difficulty, minutes, image) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)  RETURNING *';
@@ -69,7 +67,16 @@ class DB {
           params.summary.difficulty,
           params.summary.minutes,
           params.summary.image]);
-          console.log(res.rows);
+        return res.rows;
+      } catch(err) {
+        console.log(err.stack)
+      }
+    }
+
+    async getSummaries(entries = 1, offset = 0) {
+      const selectQuery = `SELECT * FROM summaries LIMIT ${entries} OFFSET ${offset}`;
+      try {
+        const res = await client.query(selectQuery)
         return res.rows;
       } catch(err) {
         console.log(err.stack)

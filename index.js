@@ -5,7 +5,7 @@ const request = require('request')
 const cheerio = require('cheerio')
 const summarize = require('summarize')
 const DB = require('./DB')
-
+const cron = require('node-cron')
 
 class News {
 
@@ -16,10 +16,8 @@ class News {
 
   init() {
     const self = this;
-    this.getLatestNews().then(() => {
-      self.convertNewsToSummaries(2);
-    });
     this.initNews();
+    this.initSummaries();
   }
 
   getLatestNews() {
@@ -90,17 +88,26 @@ class News {
     });
   }
 
-  initSummary() {
+  initSummaries() {
     const self = this;
-    app.get('/summary/:newsId', function (req, res) {
-      const article = self.state.summaries.filter(x => x.id == req.params.newsId);
-      res.send(article)
+    app.get('/summaries', function (req, res) {
+      self.db.getSummaries(req.query.entries)
+          .then((rows) => {
+            res.send(JSON.stringify(rows))
+          });
     })
   }
 }
 
 const news = new News();
-
 news.init();
+
+cron.schedule('*/30 * * * *', function(){
+  news.getLatestNews();
+});
+
+cron.schedule('*/15 * * * *', function(){
+  news.convertNewsToSummaries('10');
+});
 
 app.listen(process.env.PORT)
