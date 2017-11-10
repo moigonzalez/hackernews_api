@@ -14,6 +14,7 @@ class DB {
       this.createSummariesTable = `
       CREATE TABLE IF NOT EXISTS summaries (
         id INT PRIMARY KEY NOT NULL,
+        link TEXT,
         sentiment numeric,
         title TEXT,
         topics TEXT,
@@ -50,14 +51,25 @@ class DB {
 
 
 
-    async insertSummaries(params) {
-      const existsSummaryQuery = `SELECT * FROM summaries WHERE id = $1`;
+    async insertSummary(params) {
+      const existsQuery = `SELECT * FROM summaries WHERE id = $1`;
+      const insertQuery = 'INSERT INTO summaries(id, link, sentiment, title, topics, words, difficulty, minutes, image) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)  RETURNING *';
       try {
-        const exists = await client.query(existsSummaryQuery, [params[0]])
+        const exists = await client.query(existsQuery, [params.id]);
         if (exists.rowCount > 0) {
           return;
         }
-        const res = await client.query(selectQuery)
+        const res = await client.query(insertQuery, [
+          params.id,
+          params.link,
+          params.summary.sentiment,
+          params.summary.title,
+          params.summary.topics,
+          params.summary.words,
+          params.summary.difficulty,
+          params.summary.minutes,
+          params.summary.image]);
+          console.log(res.rows);
         return res.rows;
       } catch(err) {
         console.log(err.stack)

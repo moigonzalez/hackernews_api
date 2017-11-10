@@ -12,10 +12,6 @@ class News {
   constructor(...args) {
     this.db = new DB();
     this.db.init();
-    this.state = {
-      news: [],
-      summaries: []
-    }
   }
 
   init() {
@@ -79,7 +75,7 @@ class News {
           return;
         }
         self.getSummarizedBody(body)
-            .then((x => resolve(JSON.stringify({id: news.id, summary: JSON.parse(x)}))));
+            .then((x => resolve(JSON.stringify({id: news.id, link: news.link, summary: JSON.parse(x)}))));
         })
     });
   }
@@ -89,7 +85,9 @@ class News {
     this.db.getNews(entries)
     .then((rows) => {
       return Promise.all(rows.map(x => self.getSummary(x)));
-    }).then((y) => console.log('IS THIS RUNNING', y));
+    }).then((x) => {
+      x.forEach((y => { const z = JSON.parse(y); if (z.summary.ok) self.db.insertSummary(z)}))
+    });
   }
 
   initSummary() {
