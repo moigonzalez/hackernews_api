@@ -19,20 +19,23 @@ class News {
   }
 
   init() {
-    this.getLatestNews();
+    const self = this;
+    this.getLatestNews().then(() => {
+      self.convertNewsToSummaries(2);
+    });
     this.initNews();
   }
 
   getLatestNews() {
-    this.getNews('1');
+    return this.getNews('1');
   }
 
   initNews() {
     const self = this;
     app.get('/hackernews', function (req, res) {
-      self.getNews(req.query.page)
-          .then(() => {
-            res.send(JSON.stringify(self.state.news))
+      self.db.getNews(req.query.entries)
+          .then((rows) => {
+            res.send(JSON.stringify(rows))
           });
     })
   }
@@ -59,28 +62,35 @@ class News {
     })
   }
 
-  getSummaries() {
+  getSummarizedBody(body) {
+    return new Promise ((resolve, reject) => {
+      const s = summarize(body);
+      if (s) resolve(JSON.stringify(s));
+      else reject('error')
+    }).then((x) => x);
+  }
+
+  async getSummary(news) {
     const self = this;
-    return new Promise((resolve, reject) => {
-      self.state.news.forEach((x, i) => {
-        request(x.link, (er, re, body) => {
-          if (er) {
-            console.log('there was an error');
-            reject('error')
-            return
-          }
-          self.state.summaries.push({id: x.id, summary: summarize(body)})
-          console.log(self.state.summaries.length);
-          if (self.state.summaries.length === (self.state.news.length - 1)) {
-            console.log('all good');
-            resolve('success summaries');
-          }
+    return new Promise ((resolve, reject) => {
+      request(news.link, (er, re, body) => {
+        if (er) {
+          reject ('error')
+          return;
+        }
+        self.getSummarizedBody(body)
+            .then((x => resolve(JSON.stringify({id: news.id, summary: JSON.parse(x)}))));
         })
-      })
-  })
-}
+    });
+  }
 
-
+  async convertNewsToSummaries(entries = 1, offset = 0) {
+    const self = this;
+    this.db.getNews(entries)
+    .then((rows) => {
+      return Promise.all(rows.map(x => self.getSummary(x)));
+    }).then((y) => console.log('IS THIS RUNNING', y));
+  }
 
   initSummary() {
     const self = this;

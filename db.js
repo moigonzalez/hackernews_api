@@ -25,20 +25,43 @@ class DB {
     }
 
     async insertNews(params) {
-      const text = 'INSERT INTO news(id, link) VALUES($1, $2)  RETURNING *';
+      const insertQuery = 'INSERT INTO news(id, link) VALUES($1, $2)  RETURNING *';
+      const existsQuery = 'SELECT * FROM news WHERE id = $1';
       try {
-        const exists = await client.query('SELECT * FROM news WHERE id = $1', [params[0]])
+        const exists = await client.query(existsQuery, [params[0]])
         if (exists.rowCount > 0) {
           return;
         }
-        const res = await pool.query(text, params)
+        const res = await pool.query(insertQuery, params)
       } catch(err) {
         console.log(err.stack)
       }
     }
 
-    async getNews(pages) {
+    async getNews(entries = 1, offset = 0) {
+      const selectQuery = `SELECT * FROM news LIMIT ${entries} OFFSET ${offset}`;
+      try {
+        const res = await client.query(selectQuery)
+        return res.rows;
+      } catch(err) {
+        console.log(err.stack)
+      }
+    }
 
+
+
+    async insertSummaries(params) {
+      const existsSummaryQuery = `SELECT * FROM summaries WHERE id = $1`;
+      try {
+        const exists = await client.query(existsSummaryQuery, [params[0]])
+        if (exists.rowCount > 0) {
+          return;
+        }
+        const res = await client.query(selectQuery)
+        return res.rows;
+      } catch(err) {
+        console.log(err.stack)
+      }
     }
 
     async init() {
