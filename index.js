@@ -19,7 +19,12 @@ class News {
   }
 
   init() {
+    this.getLatestNews();
     this.initNews();
+  }
+
+  getLatestNews() {
+    this.getNews('1');
   }
 
   initNews() {

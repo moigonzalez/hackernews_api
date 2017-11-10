@@ -25,14 +25,20 @@ class DB {
     }
 
     async insertNews(params) {
-      console.log('is this running');
       const text = 'INSERT INTO news(id, link) VALUES($1, $2)  RETURNING *';
       try {
+        const exists = await client.query('SELECT * FROM news WHERE id = $1', [params[0]])
+        if (exists.rowCount > 0) {
+          return;
+        }
         const res = await pool.query(text, params)
-        console.log(res.rows[0])
       } catch(err) {
         console.log(err.stack)
       }
+    }
+
+    async getNews(pages) {
+
     }
 
     async init() {
