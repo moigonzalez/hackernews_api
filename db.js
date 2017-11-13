@@ -86,7 +86,7 @@ class DB {
     async init() {
       const self = this;
       try {
-        await client.connect();
+        await client.connect(process.env.DATABASE_URL);
       } catch(e) {
         console.log(e);
       }
