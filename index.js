@@ -16,6 +16,7 @@ class News {
 
   init() {
     const self = this;
+    this.getLatestNews();
     this.initNews();
     this.initSummaries();
   }
@@ -39,29 +40,33 @@ class News {
     return new Promise((resolve, reject) => {
       request(`https://news.ycombinator.com/news?p=${page}`, (er, re, body) => {
         if (er) {
-          reject('error')
+          reject('Error getting news')
           return
         }
         let $ = cheerio.load(body)
         $('.athing').each((i, e) => {
           let currentNews = {
             id: $(e).attr('id'),
-            link: $(e).find('.title a').attr('href'),
-            title: $(e).find('.title a').text()
+            link: $(e).find('.title .storylink').attr('href'),
+            title: $(e).find('.title .storylink').text()
           }
           self.db.insertNews([currentNews.id, currentNews.link])
         })
         resolve('success news');
       })
-    })
+    }).catch((err) => {
+        console.log(err);
+    });
   }
 
   getSummarizedBody(body) {
     return new Promise ((resolve, reject) => {
       const s = summarize(body);
       if (s) resolve(JSON.stringify(s));
-      else reject('error')
-    }).then((x) => x);
+      else reject('Error getting summarized body');
+    }).then((x) => x).catch((err) => {
+        console.log(err);
+    });;
   }
 
   async getSummary(news) {
@@ -69,12 +74,18 @@ class News {
     return new Promise ((resolve, reject) => {
       request(news.link, (er, re, body) => {
         if (er) {
-          reject ('error')
+          console.log(er);
+          reject ('Error getting summary', news.link);
           return;
         }
         self.getSummarizedBody(body)
-            .then((x => resolve(JSON.stringify({id: news.id, link: news.link, summary: JSON.parse(x)}))));
+            .then((x => resolve(JSON.stringify({id: news.id, link: news.link, summary: JSON.parse(x)}))))
+            .catch((err) => {
+                console.log(err);
+            });
         })
+    }).catch((err) => {
+        console.log(err);
     });
   }
 
@@ -85,7 +96,9 @@ class News {
       return Promise.all(rows.map(x => self.getSummary(x)));
     }).then((x) => {
       x.forEach((y => { const z = JSON.parse(y); if (z.summary.ok) self.db.insertSummary(z)}))
-    });
+    }).catch((err) => {
+        console.log(err);
+    });;
   }
 
   initSummaries() {
@@ -93,7 +106,7 @@ class News {
     app.get('/summaries', function (req, res) {
       self.db.getSummaries(req.query.entries)
           .then((rows) => {
-            res.send(JSON.stringify(rows))
+            res.send(rows)
           });
     })
   }
@@ -102,11 +115,11 @@ class News {
 const news = new News();
 news.init();
 
-cron.schedule('*/40 * * * *', function(){
+cron.schedule('*/30 * * * *', function() {
   news.getLatestNews();
 });
 
-cron.schedule('*/15 * * * *', function(){
+cron.schedule('*/10 * * * *', function() {
   news.convertNewsToSummaries('15');
 });
 

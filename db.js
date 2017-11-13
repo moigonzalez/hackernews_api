@@ -62,7 +62,7 @@ class DB {
           params.link,
           params.summary.sentiment,
           params.summary.title,
-          params.summary.topics,
+          params.summary.topics.toString(),
           params.summary.words,
           params.summary.difficulty,
           params.summary.minutes,
@@ -94,7 +94,7 @@ class DB {
         await client.query(self.createTableNews);
         await client.query(self.createSummariesTable);
       } catch(e) {
-        console.log(e, 'error creating');
+        console.log(e, 'Error creating tables');
       }
     }
 }

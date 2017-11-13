@@ -14,8 +14,8 @@
     "endpoint"
   ],
   "engines" : {
-    "node": ">=8.0.0 <8.5",
-    "npm": ">=5.4.2"
+    "node": "=8.0.0",
+    "npm": "=5.4.2"
   },
   "repository": "https://github.com/moigonzalez/hackernews_api",
   "author": "Moises Gonzalez <moigonzit@gmail.com>",
