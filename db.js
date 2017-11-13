@@ -1,8 +1,10 @@
+const connectionString = process.env.DATABASE_URL
+
 const { Client } = require('pg')
-const client = new Client()
+const client = new Client({connectionString: connectionString})
 
 const { Pool } = require('pg')
-const pool = new Pool()
+const pool = new Pool({connectionString: connectionString})
 
 class DB {
     constructor() {
@@ -86,7 +88,7 @@ class DB {
     async init() {
       const self = this;
       try {
-        await client.connect(process.env.DATABASE_URL);
+        await client.connect(connectionString);
       } catch(e) {
         console.log(e);
       }
