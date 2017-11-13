@@ -4,7 +4,7 @@ const app = express()
 const request = require('request')
 const cheerio = require('cheerio')
 const summarize = require('summarize')
-const DB = require(`./DB`)
+const DB = require(`${__dirname}/db.js`)
 const cron = require('node-cron')
 
 class News {
