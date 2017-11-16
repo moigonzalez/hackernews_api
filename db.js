@@ -42,7 +42,7 @@ class DB {
     }
 
     async getNews(entries = 1, offset = 0) {
-      const selectQuery = `SELECT * FROM news LIMIT ${entries} OFFSET ${offset}`;
+      const selectQuery = `SELECT * FROM news ORDER BY id DESC LIMIT ${entries} OFFSET ${offset}`;
       try {
         const res = await client.query(selectQuery)
         return res.rows;
@@ -76,7 +76,7 @@ class DB {
     }
 
     async getSummaries(entries = 1, offset = 0) {
-      const selectQuery = `SELECT * FROM summaries LIMIT ${entries} OFFSET ${offset}`;
+      const selectQuery = `SELECT * FROM summaries ORDER BY id DESC LIMIT ${entries} OFFSET ${offset}`;
       try {
         const res = await client.query(selectQuery)
         return res.rows;
