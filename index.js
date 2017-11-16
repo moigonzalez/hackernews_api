@@ -12,6 +12,11 @@ class News {
   constructor(...args) {
     this.db = new DB();
     this.db.init();
+    app.use((req, res, next) => {
+      res.header("Access-Control-Allow-Origin", "*");
+      res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+      next();
+    })
   }
 
   init() {
