@@ -33,7 +33,7 @@ class News {
   initNews() {
     const self = this;
     app.get('/hackernews', function (req, res) {
-      self.db.getNews(req.query.entries)
+      self.db.getNews(req.query.entries, req.query.offset)
           .then((rows) => {
             res.send(JSON.stringify(rows))
           });
@@ -109,7 +109,7 @@ class News {
   initSummaries() {
     const self = this;
     app.get('/summaries', function (req, res) {
-      self.db.getSummaries(req.query.entries)
+      self.db.getSummaries(req.query.entries, req.query.offset)
           .then((rows) => {
             res.send(rows)
           });
